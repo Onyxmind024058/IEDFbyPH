@@ -51,6 +51,7 @@ The application window is divided into three main areas:
 ## 4. Loading Data
 
 ### 4.1 Opening a CSV file
+the csv file must have been exported from Semion software using semicolon or coma
 
 1. Click **“Open CSV…”**
 2. Select an RFEA CSV file using the file explorer
