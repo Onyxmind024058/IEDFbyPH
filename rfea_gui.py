@@ -82,6 +82,10 @@ class MainWindow(QMainWindow):
         pb.addWidget(self.smooth_method)
 
         # smoothIVparam widgets
+        self.Recursive_window = QSpinBox()
+        self.Recursive_window.setRange(1, 2000)
+        self.Recursive_window.setValue(10)
+
         self.mavg_window = QSpinBox()
         self.mavg_window.setRange(1, 2000)
         self.mavg_window.setValue(20)
@@ -94,6 +98,8 @@ class MainWindow(QMainWindow):
         self.sg_win.setSingleStep(2)
         self.sg_win.setValue(13)
 
+        pb.addWidget(QLabel("Recursive window"))
+        pb.addWidget(self.Recursive_window)
         pb.addWidget(QLabel("Mavg window"))
         pb.addWidget(self.mavg_window)
         pb.addWidget(QLabel("SG polyorder"))
@@ -357,7 +363,9 @@ class MainWindow(QMainWindow):
         method = self.smooth_method.currentText()
 
         smoothIVparam = None
-        if method == "Mavg":
+        if method == "Recursive":
+            smoothIVparam = int(self.Recursive_window.value())
+        elif method == "Mavg":
             smoothIVparam = int(self.mavg_window.value())
         elif method == "SG":
             win = int(self.sg_win.value())
@@ -399,7 +407,7 @@ class MainWindow(QMainWindow):
         self.lbl_stats.setText(
             f"Eavg: {Eavg:.6g}\n"
             f"Flux: {flux:.6g}\n"
-            f"ni: {ni:.6g}\n"
+            f"ni (Valid only for Ar 3eV): {ni:.6g}\n"
             f"Epeak: {Epeak:.6g}\n"
             f"Tau ratio (tau_i/tau_rf): {tau_str}\n"
             f"Electrode_Voltage: {Electrode_Voltage:.6g}\n"

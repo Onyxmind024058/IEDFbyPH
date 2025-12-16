@@ -61,6 +61,8 @@ def full_analysis(
         SmoothFactordIdV=SmoothFactordIdV,
         smoothfunctionIV=smoothfunctionIV,
         smoothIVparam=smoothIVparam,
+        Mi=Mi,
+        Te=Te,
     )
 
     if boolplot:
@@ -193,7 +195,7 @@ def traceaverage_and_smooth(
     Electrode_Voltage: float,
     SmoothFactorIV: int,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    Vavg = np.mean(V, axis=1) + Electrode_Voltage
+    Vavg = np.mean(V, axis=1) - Electrode_Voltage
     Iavg = np.mean(I, axis=1)
     Isth = smooth_1d(Iavg, SmoothFactorIV)
     return Isth, Iavg, Vavg
@@ -231,6 +233,8 @@ def iedf(
     SmoothFactordIdV: int = 50,
     smoothfunctionIV: SmoothMethod = "Recursive",
     smoothIVparam: Union[float, int, Sequence[int]] = np.nan,
+    Mi: float,
+    Te: float,
 ) -> Tuple[float, float, np.ndarray, np.ndarray, float, float, np.ndarray]:
     """
     Returns: Eavg, flux, dIdE, E, ni, Epeak, Ismooth
@@ -239,7 +243,7 @@ def iedf(
     V = np.asarray(V, dtype=float).ravel()
 
     if smoothfunctionIV == "Recursive":
-        Epeakex, Ismooth, Vex = smoothIV_SinglePeak(I[2:], V[2:], Epeak=np.nan, Epeak_temp=np.nan, Window=10)
+        Epeakex, Ismooth, Vex = smoothIV_SinglePeak(I[2:], V[2:], Epeak=np.nan, Epeak_temp=np.nan, Window=smoothIVparam)
         dIdE = np.diff(np.r_[np.finfo(float).eps, Ismooth]) / np.diff(np.r_[np.finfo(float).eps, Vex])
         dIdE = smooth_1d(dIdE[1:], SmoothFactordIdV)
         E = Vex[1:]
@@ -275,14 +279,14 @@ def iedf(
         raise ValueError(f"Unknown smoothfunctionIV: {smoothfunctionIV!r}")
 
     # Ion flux calculation
-    valid = (E > 0) & (dIdE > 0) & (E < 32)
+    valid = (E > 0) & (dIdE > 0)
     S = np.trapz(dIdE[valid], E[valid]) if np.any(valid) else 0.0
 
     corr_fac = ion_flux_pressure_correction(pressure)
     flux = S * corr_fac
 
     # MATLAB: v_Bohm = sqrt(3/(40*1.66e-27));  (note: dimensionally odd, but kept as-is)
-    v_Bohm = np.sqrt(3.0 / (40.0 * 1.66e-27))
+    v_Bohm = np.sqrt(Te / (Mi * 1.66e-27))
     ni = flux / (0.6 * v_Bohm) if v_Bohm != 0 else np.nan
 
     Eavg = (np.sum(E * dIdE) / np.sum(dIdE)) if np.sum(dIdE) != 0 else np.nan
