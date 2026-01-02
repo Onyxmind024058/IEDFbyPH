@@ -239,6 +239,6 @@ For questions, feedback, or bug reports, contact:
 
 **Email:** [paul.hiret@unibas.ch](mailto:paul.hiret@unibas.ch)
 
-**Affiliation:** Universität BAsel
+**Affiliation:** Universität Basel
 
 ---
